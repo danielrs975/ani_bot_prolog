@@ -59,6 +59,11 @@ tieneXEstrellas(Anime, X, Lista) :- member(Anime, Lista), rating(Anime, Estrella
 % animesConNumEstrellas\3 Este predicado agrupa todos los animes con X estrellas en una lista.
 animesConNumEstrellas(Genero, Estrellas, Lista) :- animesPorGenero(Genero, ListaAnimes), findall(Anime, tieneXEstrellas(Anime, Estrellas, ListaAnimes), Animes), Lista = Animes.
 
+% Poder mostrar los animés buenos poco conocidos. Aquí se hace referencia a rating alto
+% con popularidad baja.
+
+aniBuenosPocaPop(Anime,Lista) :- popularidad(Anime,Nivel), Nivel<6, rating(Anime,Estrellas), Estrellas>3.
+
 is_quit_option(quit).
 
 main_loop :- repeat,
