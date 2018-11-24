@@ -31,7 +31,16 @@ popularidad("Full Metal Alchemist",1).
 % se suma el rating y popularidad y se ordena según el resultado.
 
 % Predicado auxiliar
-esGenero(Genero, Anime) :- generoAnime(Anime, ListaGenero), member(Genero, ListaGenero).
+esGenero(Genero, Anime) :- 
+    generoAnime(Anime, ListaGenero), 
+    member(Genero, ListaGenero).
+
+% Predicado para revertir una lista.
+anadirALaCola(Elem, [], [Elem]).
+anadirALaCola(Elem, [L|Ls], [R|Rs]) :- anadirALaCola(Elem, Ls, Respuesta), R = L, Rs = Respuesta, !.
+
+reverse([X], [X]).
+reverse([L|Ls], ListaRevertida) :- reverse(Ls, SubListaRevertida), anadirALaCola(L,SubListaRevertida, Respuesta), ListaRevertida = Respuesta, !. 
 
 % Predicado para conseguir el anime con maximo rating y/o popularidad.
 maximumRating([X], X).
@@ -55,8 +64,12 @@ ordenadoPorPopularidad(Animes, [L|Ls]) :- maximumPopularidad(Animes, Anime), L =
 
 
 % Predicado principal
-animesPorGenero(Genero, Opcion, Animes) :- findall(Anime, esGenero(Genero, Anime), Lista), Opcion = "rating" -> ordenadoPorRating(Lista, Lista1), Animes = Lista1;
-                                           findall(Anime, esGenero(Genero, Anime), Lista), Opcion = "popularidad" -> ordenadoPorPopularidad(Lista, Lista1), Animes = Lista1. 
+animesPorGenero(Genero, Opcion, Ordenamiento, Animes) :- 
+    findall(Anime, esGenero(Genero, Anime), Lista), Opcion = "r", Ordenamiento = "ma" -> ordenadoPorRating(Lista, Lista1), Animes = Lista1;
+    findall(Anime, esGenero(Genero, Anime), Lista), Opcion = "p", Ordenamiento = "ma" -> ordenadoPorPopularidad(Lista, Lista1), Animes = Lista1;
+    findall(Anime, esGenero(Genero, Anime), Lista), Opcion = "r", Ordenamiento = "me" -> ordenadoPorRating(Lista, Lista1), reverse(Lista1, Lista2), Animes = Lista2;
+    findall(Anime, esGenero(Genero, Anime), Lista), Opcion = "p", Ordenamiento = "me" -> ordenadoPorPopularidad(Lista, Lista1), reverse(Lista1, Lista2), Animes = Lista2.
+                                                         
 
 % Poder mostar los animés con X número de estrellas dentro de cierto género (el género es
 % un estado del chatbot que se debe conocer).
