@@ -92,6 +92,8 @@ animesPorGenero(Genero, Opcion, Ordenamiento, Animes) :-
     findall(Anime, esGenero(Genero, Anime), Lista), Opcion = "rp", Ordenamiento = "ma" -> ordenadoPorPopPlusRa(Lista, Lista1), Animes = Lista1;
     findall(Anime, esGenero(Genero, Anime), Lista), Opcion = "rp", Ordenamiento = "me" -> ordenadoPorPopPlusRa(Lista, Lista1), reverse(Lista1, Lista2), Animes = Lista2.
 
+
+
 % Poder mostar los animés con X número de estrellas dentro de cierto género (el género es
 % un estado del chatbot que se debe conocer).
 
@@ -107,6 +109,13 @@ animesConNumEstrellas(Genero, Estrellas, Lista) :- animesPorGenero(Genero, Lista
 
 % Predicado principal
 aniBuenosPocaPop(Anime) :- popularidad(Anime,Nivel), Nivel<6, rating(Anime,Estrellas), Estrellas>3.
+
+% Poder agregar a la base de datos un anime con su género y rating, si no está en la misma.
+% La popularidad es opcional especificarla al agregarlo y por defecto es 1.
+
+agregarAnime(Anime, Rating, 1) :- assertz(anime(Anime)), assertz(rating(Anime, Rating)), assertz(popularidad(Anime, 1)), !.
+agregarAnime(Anime, Rating, Popularidad) :- Popularidad > 0, Rating > 0, Popularidad < 11, Rating < 6,
+                                            assertz(anime(Anime)), assertz(rating(Anime, Rating)), assertz(popularidad(Anime, Popularidad)), !.
 
 is_quit_option(quit).
 
