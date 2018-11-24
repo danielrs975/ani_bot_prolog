@@ -49,6 +49,17 @@ maximumRating([L|Ls], X) :- maximumRating(Ls, Y), rating(L, Lr), rating(Y, Yr), 
 maximumPopularidad([X], X).
 maximumPopularidad([L|Ls], X) :- maximumPopularidad(Ls, Y), popularidad(L, Lr), popularidad(Y, Yr), Lr > Yr -> X = L, !; maximumPopularidad(Ls, Y), X = Y, !.
 
+maximumRatingPlusPopularidad([X], X).
+maximumRatingPlusPopularidad([L|Ls], X) :- 
+    maximumRatingPlusPopularidad(Ls, Y),
+    popularidad(L, P),
+    rating(L, R),
+    popularidad(Y, P1),
+    rating(Y, R1),
+    PopPlusRa is P + R,
+    PopPlusRa1 is P1 + R1,
+    PopPlusRa > PopPlusRa1 -> X = L, !; maximumRatingPlusPopularidad(Ls, Y), X = Y, !.
+
 
 % Predicado para eliminar un elemento de una lista
 deleteList(_, [], []).
@@ -62,14 +73,24 @@ ordenadoPorRating(Animes, [L|Ls]) :- maximumRating(Animes, Anime), L = Anime,  d
 ordenadoPorPopularidad([A], [A]).
 ordenadoPorPopularidad(Animes, [L|Ls]) :- maximumPopularidad(Animes, Anime), L = Anime,  deleteList(Anime, Animes, AnimesMenosUno), ordenadoPorPopularidad(AnimesMenosUno, SubListaOrdenada), Ls = SubListaOrdenada, !.
 
+% Este predicado ordena con respecto al resultado de la suma entre la popularidad y el rating
+ordenadoPorPopPlusRa([A], [A]).
+ordenadoPorPopPlusRa(Animes, [L|Ls]) :- 
+    maximumRatingPlusPopularidad(Animes, Anime),
+    L = Anime, 
+    deleteList(Anime, Animes, AnimesMenosUno), 
+    ordenadoPorPopPlusRa(AnimesMenosUno, SubListaOrdenada), 
+    Ls = SubListaOrdenada, !.
+
 
 % Predicado principal
 animesPorGenero(Genero, Opcion, Ordenamiento, Animes) :- 
     findall(Anime, esGenero(Genero, Anime), Lista), Opcion = "r", Ordenamiento = "ma" -> ordenadoPorRating(Lista, Lista1), Animes = Lista1;
     findall(Anime, esGenero(Genero, Anime), Lista), Opcion = "p", Ordenamiento = "ma" -> ordenadoPorPopularidad(Lista, Lista1), Animes = Lista1;
     findall(Anime, esGenero(Genero, Anime), Lista), Opcion = "r", Ordenamiento = "me" -> ordenadoPorRating(Lista, Lista1), reverse(Lista1, Lista2), Animes = Lista2;
-    findall(Anime, esGenero(Genero, Anime), Lista), Opcion = "p", Ordenamiento = "me" -> ordenadoPorPopularidad(Lista, Lista1), reverse(Lista1, Lista2), Animes = Lista2.
-                                                         
+    findall(Anime, esGenero(Genero, Anime), Lista), Opcion = "p", Ordenamiento = "me" -> ordenadoPorPopularidad(Lista, Lista1), reverse(Lista1, Lista2), Animes = Lista2;
+    findall(Anime, esGenero(Genero, Anime), Lista), Opcion = "rp", Ordenamiento = "ma" -> ordenadoPorPopPlusRa(Lista, Lista1), Animes = Lista1;
+    findall(Anime, esGenero(Genero, Anime), Lista), Opcion = "rp", Ordenamiento = "me" -> ordenadoPorPopPlusRa(Lista, Lista1), reverse(Lista1, Lista2), Animes = Lista2.
 
 % Poder mostar los animés con X número de estrellas dentro de cierto género (el género es
 % un estado del chatbot que se debe conocer).
@@ -85,7 +106,7 @@ animesConNumEstrellas(Genero, Estrellas, Lista) :- animesPorGenero(Genero, Lista
 % con popularidad baja.
 
 % Predicado principal
-aniBuenosPocaPop(Anime,Lista) :- popularidad(Anime,Nivel), Nivel<6, rating(Anime,Estrellas), Estrellas>3.
+aniBuenosPocaPop(Anime) :- popularidad(Anime,Nivel), Nivel<6, rating(Anime,Estrellas), Estrellas>3.
 
 is_quit_option(quit).
 
