@@ -62,6 +62,7 @@ animesConNumEstrellas(Genero, Estrellas, Lista) :- animesPorGenero(Genero, Lista
 % Poder mostrar los animés buenos poco conocidos. Aquí se hace referencia a rating alto
 % con popularidad baja.
 
+% Predicado principal
 aniBuenosPocaPop(Anime,Lista) :- popularidad(Anime,Nivel), Nivel<6, rating(Anime,Estrellas), Estrellas>3.
 
 is_quit_option(quit).
