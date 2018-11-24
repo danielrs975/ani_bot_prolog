@@ -37,6 +37,10 @@ esGenero(Genero, Anime) :- generoAnime(Anime, ListaGenero), member(Genero, Lista
 maximumRating([X], X).
 maximumRating([L|Ls], X) :- maximumRating(Ls, Y), rating(L, Lr), rating(Y, Yr), Lr > Yr -> X = L, !; maximumRating(Ls, Y), X = Y, !.
 
+maximumPopularidad([X], X).
+maximumPopularidad([L|Ls], X) :- maximumPopularidad(Ls, Y), popularidad(L, Lr), popularidad(Y, Yr), Lr > Yr -> X = L, !; maximumPopularidad(Ls, Y), X = Y, !.
+
+
 % Predicado para eliminar un elemento de una lista
 deleteList(_, [], []).
 deleteList(Elem, [L|Ls], Lista) :- Elem = L, Lista = Ls, !.
@@ -46,8 +50,13 @@ deleteList(Elem, [L|Ls], [O|Os]) :- Elem \= L, O = L, deleteList(Elem, Ls, Lista
 ordenadoPorRating([A], [A]).
 ordenadoPorRating(Animes, [L|Ls]) :- maximumRating(Animes, Anime), L = Anime,  deleteList(Anime, Animes, AnimesMenosUno), ordenadoPorRating(AnimesMenosUno, SubListaOrdenada), Ls = SubListaOrdenada, !.
 
+ordenadoPorPopularidad([A], [A]).
+ordenadoPorPopularidad(Animes, [L|Ls]) :- maximumPopularidad(Animes, Anime), L = Anime,  deleteList(Anime, Animes, AnimesMenosUno), ordenadoPorPopularidad(AnimesMenosUno, SubListaOrdenada), Ls = SubListaOrdenada, !.
+
+
 % Predicado principal
-animesPorGenero(Genero, Opcion, Animes) :- findall(Anime, esGenero(Genero, Anime), Lista), ordenadoPorRating(Lista, Lista1), Animes = Lista1.
+animesPorGenero(Genero, Opcion, Animes) :- findall(Anime, esGenero(Genero, Anime), Lista), Opcion = "rating" -> ordenadoPorRating(Lista, Lista1), Animes = Lista1;
+                                           findall(Anime, esGenero(Genero, Anime), Lista), Opcion = "popularidad" -> ordenadoPorPopularidad(Lista, Lista1), Animes = Lista1. 
 
 % Poder mostar los animés con X número de estrellas dentro de cierto género (el género es
 % un estado del chatbot que se debe conocer).
