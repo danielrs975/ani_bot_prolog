@@ -120,20 +120,48 @@ agregarAnime(Anime, Rating, Popularidad) :- Popularidad > 0, Rating > 0, Popular
 % Subir la popularidad del anime si los usuarios preguntan por él 5 o más veces.
 
 % Predicado que actualiza la cantidad de veces que se ha preguntado por un anime.
-preguntado(Anime, Veces) :- retract(preguntado(Anime, Veces)), VecesNuevo is Veces+1, assertz(preguntado(Anime,VecesNuevo)), !.
+preguntado(Anime) :- retract(preguntado(Anime, Veces)), VecesNuevo is Veces+1, assertz(preguntado(Anime,VecesNuevo)), !.
 
 % Predicado que reinicia el valor de Veces a 0 cuando ya se ha preguntado 5 veces por un anime.
-pregCero(Anime) :- retract(preguntado(Anime, Veces)), VecesNuevo is 0, assertz(preguntado(Anime,VecesNuevo)), !.
+pregCero(Anime) :- retract(preguntado(Anime, _)), VecesNuevo is 0, assertz(preguntado(Anime,VecesNuevo)), !.
 
 % Predicado que aumenta en uno (1) la popularidad de un anime dado
 subirPop(Anime) :- preguntado(Anime, Veces), Veces > 4, retract(popularidad(Anime, Nivel)), NivelNuevo is Nivel+1, assertz(popularidad(Anime,NivelNuevo)), pregCero(Anime), !.
 
+% -----------------------------------------------------IMPLEMENTACION DEL CHATBOT------------------------------------------------------------------------ %
 
-is_quit_option(quit).
+% Predicado para reconocer saludos 
+saludos(Frase, saludos) :- member(Frase, ["hola", "hi", "buenos dias", "hello", "bonjour", "salute"]), !.
+
+% Predicado para reconocer despedidas
+despedida(Frase, despedida) :- member(Frase, ["chao", "ya no necesito mas nada", "adios", "gracias"]).
+
+% Reconocer el topico del cual se va hablar 
+reconocerTopico(Frase, Topico) :- 
+    saludos(Frase, X), Topico = X, !;
+    despedida(Frase, X), Topico = X, !.
+
+% Respuestas para cada uno de los topicos
+respuestaSaludos(FraseRespuesta) :- 
+    random_member(Respuesta, ["Hola soy el AniBot, en quieres que te ayude ?", "Hello, mi nombre es AniBot que haremos hoy ?", "AniBot presentandose, dime que necesitas"]),
+    FraseRespuesta = Respuesta.
+
+respuestaDespedida(FraseRespuesta) :-
+    random_member(Respuesta, ["Adios, estamos en contacto!", "Chao, no dudes en usarme de nuevo", "Disfruta viendo nuestras recomendaciones", "Si necesitas otro anime escribeme"]),
+    FraseRespuesta = Respuesta.
+
+% Manejador de Respuestas
+producirRespuesta(Topico, Frase) :-
+    Topico = saludos -> respuestaSaludos(FraseRespuesta), Frase = FraseRespuesta;
+    Topico = despedida -> respuestaDespedida(FraseRespuesta), Frase = FraseRespuesta.
+
+% Emitir una respuesta. 
+emitirRespuesta(Entrada, Respuesta) :- reconocerTopico(Entrada, Topico), producirRespuesta(Topico, FraseRespuesta), Respuesta = FraseRespuesta.
 
 main_loop :- repeat,
-                write("hola"),
-                read(N),
-                write(N),
-            is_quit_option(N),
+                write("Bienvenido al AniBot: -> "),
+                read(N), 
+                nl, atom_string(N, Entrada), emitirRespuesta(Entrada, Respuesta),
+                write(Respuesta),
+            despedida(Entrada, despedida),
             !.
