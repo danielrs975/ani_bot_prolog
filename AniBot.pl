@@ -104,11 +104,17 @@ tieneXEstrellas(Anime, X, Lista) :- member(Anime, Lista), rating(Anime, Estrella
 % animesConNumEstrellas\3 Este predicado agrupa todos los animes con X estrellas en una lista.
 animesConNumEstrellas(Genero, Estrellas, Lista) :- animesPorGenero(Genero, ListaAnimes), findall(Anime, tieneXEstrellas(Anime, Estrellas, ListaAnimes), Animes), Lista = Animes.
 
+% Poder mostrar los animes con X numero de estrellas.
+animesXEstrella(X, Lista) :- findall(Anime, tieneXEstrellas(Anime, X, ListaAnimes), Animes), Lista = Animes.
+
 % Poder mostrar los animés buenos poco conocidos. Aquí se hace referencia a rating alto
 % con popularidad baja.
 
 % Predicado principal
 aniBuenosPocaPop(Anime) :- popularidad(Anime,Nivel), Nivel<6, rating(Anime,Estrellas), Estrellas>3.
+
+% este predicado agrupa todos los animes buenos poco conocidos en una lista
+animesDeInteres(Lista) :- findall(Anime, aniBuenosPocaPop(Anime), Animes), Lista = Animes.
 
 % Poder agregar a la base de datos un anime con su género y rating, si no está en la misma.
 % La popularidad es opcional especificarla al agregarlo y por defecto es 1.
@@ -162,6 +168,28 @@ arcDespedida(4, 6, vere:'#').
 arcDespedida(6, 7, tus:'#').
 arcDespedida(7, 2, reconmedaciones:Respuesta) :- respuestaDespedida(FraseRespuesta), Respuesta = FraseRespuesta.
 
+% Automata para reconocer pregunta sobre animes buenos pero poco conocidos.
+inicialInteres(1).
+finalInteres(2).
+arcInteres(1, 4, quiero:'#').
+arcInteres(4, 5, ver:'#').
+arcInteres(5, 6, un:'#').
+arcInteres(6, 7, anime:'#').
+arcInteres(7, 8, interesante:'#').
+arcInteres(8, 9, pero:'#').
+arcInteres(9, 10, poco:'#').
+arcInteres(10, 2, conocido:Respuesta) :- respuestaInteres(FraseRespuesta), Respuesta = FraseRespuesta.
+
+% Automata para reconocer pregunta sobre los mejores ratings.
+
+inicialMejores(1).
+finalMejores(2).
+arcMejores(1, 4, cuales:'#').
+arcMejores(4, 5, son:'#').
+arcMejores(5, 6, los:'#').
+arcMejores(6, 7, mejores:'#').
+arcMejores(7, 2, ratings:Respuesta) :- respuestaMejores(FraseRespuesta), Respuesta = FraseRespuesta.
+
 % Reconocedor de saludos.
 reconoceSaludo(Node, [], []) :- 
     finalSaludos(Node).
@@ -180,10 +208,30 @@ reconoceDespedida(Node1, String1, Responder) :-
     traverse(Label, String1, NewString1, Responder, NewResponder),
     reconoceDespedida(Node2, NewString1, NewResponder).
 
+% Reconodedor de pregunta sobre anime bueno poco conocido,
+reconoceInteres(Node, [], []) :-
+    finalInteres(Node).
+
+reconoceInteres(Node1, String1, Responder) :-
+    arcInteres(Node1, Node2, Label),
+    traverse(Label, String1, NewString1, Responder, NewResponder),
+    reconoceInteres(Node2, NewString1, NewResponder).
+
+% Reconocedor de pregunta sobre animes con mejor ratings.
+reconoceMejores(Node, [], []) :-
+    finalMejores(Node).
+
+reconoceMejores(Node1, String1, Responder) :-
+    arcMejores(Node1, Node2, Label),
+    traverse(Label, String1, NewString1, Responder, NewResponder),
+    reconoceMejores(Node2, NewString1, NewResponder).
+
 %--------------------------------------------------------- Manejador de Respuestas 2. Para Automatas.------------------------------------------------------%
 producirRespuestaAutomata(Frase, FraseRespuesta) :-
     reconoceSaludo(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !;
-    reconoceDespedida(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !.
+    reconoceDespedida(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !;
+    reconoceInteres(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !;
+    reconoceMejores(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !.
 
 % Emitir Respuesta Con Automatas
 emitirRespuestaAutomata(Entrada, Respuesta) :- producirRespuestaAutomata(Entrada, FraseRespuesta), Respuesta = FraseRespuesta.
@@ -196,6 +244,10 @@ respuestaSaludos(FraseRespuesta) :-
 respuestaDespedida(FraseRespuesta) :-
     random_member(Respuesta, ["Adios, estamos en contacto!", "Chao, no dudes en usarme de nuevo", "Disfruta viendo nuestras recomendaciones", "Si necesitas otro anime escribeme"]),
     FraseRespuesta = Respuesta.
+
+respuestaInteres(FraseRespuesta) :- animesDeInteres(Respuesta), FraseRespuesta = Respuesta.
+
+respuestaMejores(FraseRespuesta) :- animesXEstrella(5, Respuesta), FraseRespuesta = Respuesta.
 
 se_salio(quit).
 % IMPORTANTE readln lee del standar input pero convierte la entrada en una lista de las palabras 
