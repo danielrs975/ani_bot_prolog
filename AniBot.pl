@@ -171,10 +171,19 @@ reconoceSaludo(Node1, String1, Responder) :-
     traverse(Label, String1, NewString1, Responder, NewResponder),
     reconoceSaludo(Node2, NewString1, NewResponder).
 
+% Reconocedor de despedidas.
+reconoceDespedida(Node, [], []) :-
+    finalDespedida(Node).
+
+reconoceDespedida(Node1, String1, Responder) :-
+    arcDespedida(Node1, Node2, Label),
+    traverse(Label, String1, NewString1, Responder, NewResponder),
+    reconoceDespedida(Node2, NewString1, NewResponder).
 
 %--------------------------------------------------------- Manejador de Respuestas 2. Para Automatas.------------------------------------------------------%
 producirRespuestaAutomata(Frase, FraseRespuesta) :-
-    reconoceSaludo(1, Frase, Respuesta) -> FraseRespuesta = Respuesta. 
+    reconoceSaludo(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !;
+    reconoceDespedida(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !.
 
 % Emitir Respuesta Con Automatas
 emitirRespuestaAutomata(Entrada, Respuesta) :- producirRespuestaAutomata(Entrada, FraseRespuesta), Respuesta = FraseRespuesta.
