@@ -1,4 +1,4 @@
-:- dynamic anime/1, genero/1, rating/2, popularidad/2.
+:- dynamic anime/1, genero/1, rating/2, popularidad/2, subirPop/1, preguntado/2.
 
 anime(X) :- member(X,["Dragon Ball", "Naruto", "Bleach", "HunterXHunter", "Hamtaro", "Full Metal Alchemist"]).
 
@@ -116,6 +116,18 @@ aniBuenosPocaPop(Anime) :- popularidad(Anime,Nivel), Nivel<6, rating(Anime,Estre
 agregarAnime(Anime, Rating, 1) :- assertz(anime(Anime)), assertz(rating(Anime, Rating)), assertz(popularidad(Anime, 1)), !.
 agregarAnime(Anime, Rating, Popularidad) :- Popularidad > 0, Rating > 0, Popularidad < 11, Rating < 6,
                                             assertz(anime(Anime)), assertz(rating(Anime, Rating)), assertz(popularidad(Anime, Popularidad)), !.
+
+% Subir la popularidad del anime si los usuarios preguntan por él 5 o más veces.
+
+% Predicado que actualiza la cantidad de veces que se ha preguntado por un anime.
+preguntado(Anime, Veces) :- retract(preguntado(Anime, Veces)), VecesNuevo is Veces+1, assertz(preguntado(Anime,VecesNuevo)), !.
+
+% Predicado que reinicia el valor de Veces a 0 cuando ya se ha preguntado 5 veces por un anime.
+pregCero(Anime) :- retract(preguntado(Anime, Veces)), VecesNuevo is 0, assertz(preguntado(Anime,VecesNuevo)), !.
+
+% Predicado que aumenta en uno (1) la popularidad de un anime dado
+subirPop(Anime) :- preguntado(Anime, Veces), Veces > 4, retract(popularidad(Anime, Nivel)), NivelNuevo is Nivel+1, assertz(popularidad(Anime,NivelNuevo)), pregCero(Anime), !.
+
 
 is_quit_option(quit).
 
