@@ -197,15 +197,16 @@ respuestaDespedida(FraseRespuesta) :-
     random_member(Respuesta, ["Adios, estamos en contacto!", "Chao, no dudes en usarme de nuevo", "Disfruta viendo nuestras recomendaciones", "Si necesitas otro anime escribeme"]),
     FraseRespuesta = Respuesta.
 
-se_salio(quit).
+transform_to_string([Frase|_], Frase2) :- Frase2 = Frase.
+se_salio(Frase) :- member(Frase, ["Adios, estamos en contacto!", "Chao, no dudes en usarme de nuevo", "Disfruta viendo nuestras recomendaciones", "Si necesitas otro anime escribeme"]).
 % IMPORTANTE readln lee del standar input pero convierte la entrada en una lista de las palabras 
 % podria tener mucha utilidad
 
 main_loop :- write("Bienvenido al AniBot: -> "),
              repeat,
                 readln(N),
-                write(N),
                 nl, emitirRespuestaAutomata(N, Respuesta),
-                write(Respuesta),
-            se_salio(N),
+                transform_to_string(Respuesta, Salida),
+                write(Salida),
+            se_salio(Salida),
             !.
