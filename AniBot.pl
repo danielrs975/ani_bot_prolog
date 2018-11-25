@@ -129,6 +129,43 @@ pregCero(Anime) :- retract(preguntado(Anime, _)), VecesNuevo is 0, assertz(pregu
 subirPop(Anime) :- preguntado(Anime, Veces), Veces > 4, retract(popularidad(Anime, Nivel)), NivelNuevo is Nivel+1, assertz(popularidad(Anime,NivelNuevo)), pregCero(Anime), !.
 
 % -----------------------------------------------------IMPLEMENTACION DEL CHATBOT------------------------------------------------------------------------ %
+% Definiendo el operador :
+:- op(250, xfx, :).
+
+% -------------------------------------------------------------AUTOMATAS--------------------------------------------------------------------------------- %
+% Predicado que va de un nodo 1 a un nodo 2 cualesquiera 
+traverse(L1:'#',[L1|RestTape1],RestTape1,Tape2,Tape2).
+traverse(L1:L2,[L1|RestTape1],RestTape1,[L2|RestTape2],RestTape2).
+
+% Automata para reconocer saludos 
+inicialSaludos(1).
+finalSaludos(2).
+arcSaludos(1, 2, Palabra:Respuesta) :- member(Palabra, [hola, bonjour, hi, hello, salute]), respuestaSaludos(FraseRespuesta), Respuesta = FraseRespuesta.
+arcSaludos(1, 4, hola:'#').
+arcSaludos(4, 2, anibot:Respuesta) :- respuestaSaludos(FraseRespuesta), Respuesta = FraseRespuesta.
+arcSaludos(1, 3, buenos:'#').
+arcSaludos(3, 2, dias:Respuesta) :- respuestaSaludos(FraseRespuesta), Respuesta = FraseRespuesta.
+
+% Reconocedor de saludos.
+reconoceSaludo(Node, [], []) :- 
+    finalSaludos(Node).
+
+reconoceSaludo(Node1, String1, Responder) :-
+    arcSaludos(Node1, Node2, Label),
+    traverse(Label, String1, NewString1, Responder, NewResponder),
+    reconoceSaludo(Node2, NewString1, NewResponder).
+
+
+%--------------------------------------------------------- Manejador de Respuestas 2. Para Automatas.------------------------------------------------------%
+producirRespuestaAutomata(Frase, FraseRespuesta) :-
+    reconoceSaludo(1, Frase, Respuesta) -> FraseRespuesta = Respuesta. 
+
+% Emitir Respuesta Con Automatas
+emitirRespuestaAutomata(Entrada, Respuesta) :- producirRespuestaAutomata(Entrada, FraseRespuesta), Respuesta = FraseRespuesta.
+
+
+
+% RECONOCEDOR VIEJO 
 
 % Predicado para reconocer saludos 
 saludos(Frase, saludos) :- member(Frase, [[hola], [hi], [buenos, dias], [hello], [bonjour], [salute]]), !.
@@ -155,8 +192,12 @@ producirRespuesta(Topico, Frase) :-
     Topico = saludos -> respuestaSaludos(FraseRespuesta), Frase = FraseRespuesta;
     Topico = despedida -> respuestaDespedida(FraseRespuesta), Frase = FraseRespuesta.
 
+
+
 % Emitir una respuesta. 
 emitirRespuesta(Entrada, Respuesta) :- reconocerTopico(Entrada, Topico), producirRespuesta(Topico, FraseRespuesta), Respuesta = FraseRespuesta.
+
+
 
 % IMPORTANTE readln lee del standar input pero convierte la entrada en una lista de las palabras 
 % podria tener mucha utilidad
@@ -164,7 +205,8 @@ emitirRespuesta(Entrada, Respuesta) :- reconocerTopico(Entrada, Topico), produci
 main_loop :- write("Bienvenido al AniBot: -> "),
              repeat,
                 readln(N),
-                nl, emitirRespuesta(N, Respuesta),
+                write(N),
+                nl, emitirRespuestaAutomata(N, Respuesta),
                 write(Respuesta),
             despedida(N, despedida),
             !.
