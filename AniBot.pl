@@ -131,10 +131,10 @@ subirPop(Anime) :- preguntado(Anime, Veces), Veces > 4, retract(popularidad(Anim
 % -----------------------------------------------------IMPLEMENTACION DEL CHATBOT------------------------------------------------------------------------ %
 
 % Predicado para reconocer saludos 
-saludos(Frase, saludos) :- member(Frase, ["hola", "hi", "buenos dias", "hello", "bonjour", "salute"]), !.
+saludos(Frase, saludos) :- member(Frase, [[hola], [hi], [buenos, dias], [hello], [bonjour], [salute]]), !.
 
 % Predicado para reconocer despedidas
-despedida(Frase, despedida) :- member(Frase, ["chao", "ya no necesito mas nada", "adios", "gracias"]).
+despedida(Frase, despedida) :- member(Frase, [[chao], [ya, no, necesito, mas, nada], [adios], [gracias]]).
 
 % Reconocer el topico del cual se va hablar 
 reconocerTopico(Frase, Topico) :- 
@@ -158,10 +158,13 @@ producirRespuesta(Topico, Frase) :-
 % Emitir una respuesta. 
 emitirRespuesta(Entrada, Respuesta) :- reconocerTopico(Entrada, Topico), producirRespuesta(Topico, FraseRespuesta), Respuesta = FraseRespuesta.
 
-main_loop :- repeat,
-                write("Bienvenido al AniBot: -> "),
-                read(N), 
-                nl, atom_string(N, Entrada), emitirRespuesta(Entrada, Respuesta),
+% IMPORTANTE readln lee del standar input pero convierte la entrada en una lista de las palabras 
+% podria tener mucha utilidad
+
+main_loop :- write("Bienvenido al AniBot: -> "),
+             repeat,
+                readln(N),
+                nl, emitirRespuesta(N, Respuesta),
                 write(Respuesta),
-            despedida(Entrada, despedida),
+            despedida(N, despedida),
             !.
