@@ -180,41 +180,6 @@ producirRespuestaAutomata(Frase, FraseRespuesta) :-
 emitirRespuestaAutomata(Entrada, Respuesta) :- producirRespuestaAutomata(Entrada, FraseRespuesta), Respuesta = FraseRespuesta.
 
 
-
-% RECONOCEDOR VIEJO 
-
-% Predicado para reconocer saludos 
-saludos(Frase, saludos) :- member(Frase, [[hola], [hi], [buenos, dias], [hello], [bonjour], [salute]]), !.
-
-% Predicado para reconocer despedidas
-despedida(Frase, despedida) :- member(Frase, [[chao], [ya, no, necesito, mas, nada], [adios], [gracias]]).
-
-% Reconocer el topico del cual se va hablar 
-reconocerTopico(Frase, Topico) :- 
-    saludos(Frase, X), Topico = X, !;
-    despedida(Frase, X), Topico = X, !.
-
-% Respuestas para cada uno de los topicos
-respuestaSaludos(FraseRespuesta) :- 
-    random_member(Respuesta, ["Hola soy el AniBot, en quieres que te ayude ?", "Hello, mi nombre es AniBot que haremos hoy ?", "AniBot presentandose, dime que necesitas"]),
-    FraseRespuesta = Respuesta.
-
-respuestaDespedida(FraseRespuesta) :-
-    random_member(Respuesta, ["Adios, estamos en contacto!", "Chao, no dudes en usarme de nuevo", "Disfruta viendo nuestras recomendaciones", "Si necesitas otro anime escribeme"]),
-    FraseRespuesta = Respuesta.
-
-% Manejador de Respuestas
-producirRespuesta(Topico, Frase) :-
-    Topico = saludos -> respuestaSaludos(FraseRespuesta), Frase = FraseRespuesta;
-    Topico = despedida -> respuestaDespedida(FraseRespuesta), Frase = FraseRespuesta.
-
-
-
-% Emitir una respuesta. 
-emitirRespuesta(Entrada, Respuesta) :- reconocerTopico(Entrada, Topico), producirRespuesta(Topico, FraseRespuesta), Respuesta = FraseRespuesta.
-
-
-
 % IMPORTANTE readln lee del standar input pero convierte la entrada en una lista de las palabras 
 % podria tener mucha utilidad
 
