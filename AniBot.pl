@@ -232,13 +232,15 @@ producirRespuestaAutomata(Frase, FraseRespuesta) :-
     reconoceDespedida(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !;
     reconoceInteres(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !;
     reconoceMejores(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !.
+    respuestaError(Respuesta), FraseRespuesta = Respuesta, !.
+
 
 % Emitir Respuesta Con Automatas
 emitirRespuestaAutomata(Entrada, Respuesta) :- producirRespuestaAutomata(Entrada, FraseRespuesta), Respuesta = FraseRespuesta.
 
 % Respuestas para cada uno de los topicos
 respuestaSaludos(FraseRespuesta) :- 
-    random_member(Respuesta, ["Hola soy el AniBot, en quieres que te ayude ?", "Hello, mi nombre es AniBot que haremos hoy ?", "AniBot presentandose, dime que necesitas"]),
+    random_member(Respuesta, ["Hola soy el AniBot, en quieres que te ayude ? ", "Hello, mi nombre es AniBot que haremos hoy ? ", "AniBot presentandose, dime que necesitas "]),
     FraseRespuesta = Respuesta.
 
 respuestaDespedida(FraseRespuesta) :-
@@ -250,14 +252,22 @@ respuestaInteres(FraseRespuesta) :- animesDeInteres(Respuesta), FraseRespuesta =
 respuestaMejores(FraseRespuesta) :- animesXEstrella(5, Respuesta), FraseRespuesta = Respuesta.
 
 se_salio(quit).
+% Este predicado actuara como un sumidero para aquellas frases que no pueda reconocer ninguno de 
+% los automatas
+respuestaError(FraseRespuesta) :-
+    random_member(Respuesta, [["Lo siento, no entiendo lo que me trata de decir "], ["Puede repetir lo que dijo, por favor "], ["No tengo disponible esa informacion "]]),
+    FraseRespuesta = Respuesta.
+
+transform_to_string([Frase|_], Frase2) :- Frase2 = Frase.
+se_salio(Frase) :- member(Frase, ["Adios, estamos en contacto!", "Chao, no dudes en usarme de nuevo", "Disfruta viendo nuestras recomendaciones", "Si necesitas otro anime escribeme"]).
 % IMPORTANTE readln lee del standar input pero convierte la entrada en una lista de las palabras 
 % podria tener mucha utilidad
 
 main_loop :- write("Bienvenido al AniBot: -> "),
              repeat,
                 readln(N),
-                write(N),
                 nl, emitirRespuestaAutomata(N, Respuesta),
-                write(Respuesta),
-            se_salio(N),
+                transform_to_string(Respuesta, Salida),
+                write(Salida),
+            se_salio(Salida),
             !.
