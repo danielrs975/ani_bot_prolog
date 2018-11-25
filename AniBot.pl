@@ -183,18 +183,26 @@ reconoceDespedida(Node1, String1, Responder) :-
 %--------------------------------------------------------- Manejador de Respuestas 2. Para Automatas.------------------------------------------------------%
 producirRespuestaAutomata(Frase, FraseRespuesta) :-
     reconoceSaludo(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !;
-    reconoceDespedida(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !.
+    reconoceDespedida(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !;
+    respuestaError(Respuesta), FraseRespuesta = Respuesta, !.
+
 
 % Emitir Respuesta Con Automatas
 emitirRespuestaAutomata(Entrada, Respuesta) :- producirRespuestaAutomata(Entrada, FraseRespuesta), Respuesta = FraseRespuesta.
 
 % Respuestas para cada uno de los topicos
 respuestaSaludos(FraseRespuesta) :- 
-    random_member(Respuesta, ["Hola soy el AniBot, en quieres que te ayude ?", "Hello, mi nombre es AniBot que haremos hoy ?", "AniBot presentandose, dime que necesitas"]),
+    random_member(Respuesta, ["Hola soy el AniBot, en quieres que te ayude ? ", "Hello, mi nombre es AniBot que haremos hoy ? ", "AniBot presentandose, dime que necesitas "]),
     FraseRespuesta = Respuesta.
 
 respuestaDespedida(FraseRespuesta) :-
     random_member(Respuesta, ["Adios, estamos en contacto!", "Chao, no dudes en usarme de nuevo", "Disfruta viendo nuestras recomendaciones", "Si necesitas otro anime escribeme"]),
+    FraseRespuesta = Respuesta.
+
+% Este predicado actuara como un sumidero para aquellas frases que no pueda reconocer ninguno de 
+% los automatas
+respuestaError(FraseRespuesta) :-
+    random_member(Respuesta, [["Lo siento, no entiendo lo que me trata de decir "], ["Puede repetir lo que dijo, por favor "], ["No tengo disponible esa informacion "]]),
     FraseRespuesta = Respuesta.
 
 transform_to_string([Frase|_], Frase2) :- Frase2 = Frase.
