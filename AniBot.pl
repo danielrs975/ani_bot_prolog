@@ -179,7 +179,16 @@ producirRespuestaAutomata(Frase, FraseRespuesta) :-
 % Emitir Respuesta Con Automatas
 emitirRespuestaAutomata(Entrada, Respuesta) :- producirRespuestaAutomata(Entrada, FraseRespuesta), Respuesta = FraseRespuesta.
 
+% Respuestas para cada uno de los topicos
+respuestaSaludos(FraseRespuesta) :- 
+    random_member(Respuesta, ["Hola soy el AniBot, en quieres que te ayude ?", "Hello, mi nombre es AniBot que haremos hoy ?", "AniBot presentandose, dime que necesitas"]),
+    FraseRespuesta = Respuesta.
 
+respuestaDespedida(FraseRespuesta) :-
+    random_member(Respuesta, ["Adios, estamos en contacto!", "Chao, no dudes en usarme de nuevo", "Disfruta viendo nuestras recomendaciones", "Si necesitas otro anime escribeme"]),
+    FraseRespuesta = Respuesta.
+
+se_salio(quit).
 % IMPORTANTE readln lee del standar input pero convierte la entrada en una lista de las palabras 
 % podria tener mucha utilidad
 
@@ -189,5 +198,5 @@ main_loop :- write("Bienvenido al AniBot: -> "),
                 write(N),
                 nl, emitirRespuestaAutomata(N, Respuesta),
                 write(Respuesta),
-            despedida(N, despedida),
+            se_salio(N),
             !.
