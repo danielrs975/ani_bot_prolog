@@ -105,7 +105,7 @@ tieneXEstrellas(Anime, X, Lista) :- member(Anime, Lista), rating(Anime, Estrella
 animesConNumEstrellas(Genero, Estrellas, Lista) :- animesPorGenero(Genero, ListaAnimes), findall(Anime, tieneXEstrellas(Anime, Estrellas, ListaAnimes), Animes), Lista = Animes.
 
 % Poder mostrar los animes con X numero de estrellas.
-animesXEstrella(X, Lista) :- findall(Anime, tieneXEstrellas(Anime, X, ListaAnimes), Animes), Lista = Animes.
+animesConNumEstrellas(Estrellas, Lista) :- findall(Ani, anime(Ani), BaseAnimes), findall(Anime, tieneXEstrellas(Anime, Estrellas, BaseAnimes), Animes), Lista = Animes.
 
 % Poder mostrar los animés buenos poco conocidos. Aquí se hace referencia a rating alto
 % con popularidad baja.
@@ -231,7 +231,7 @@ producirRespuestaAutomata(Frase, FraseRespuesta) :-
     reconoceSaludo(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !;
     reconoceDespedida(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !;
     reconoceInteres(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !;
-    reconoceMejores(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !.
+    reconoceMejores(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !;
     respuestaError(Respuesta), FraseRespuesta = Respuesta, !.
 
 
@@ -249,9 +249,8 @@ respuestaDespedida(FraseRespuesta) :-
 
 respuestaInteres(FraseRespuesta) :- animesDeInteres(Respuesta), FraseRespuesta = Respuesta.
 
-respuestaMejores(FraseRespuesta) :- animesXEstrella(5, Respuesta), FraseRespuesta = Respuesta.
+respuestaMejores(FraseRespuesta) :- animesConNumEstrellas(5, Respuesta), FraseRespuesta = Respuesta.
 
-se_salio(quit).
 % Este predicado actuara como un sumidero para aquellas frases que no pueda reconocer ninguno de 
 % los automatas
 respuestaError(FraseRespuesta) :-
