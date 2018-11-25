@@ -134,6 +134,7 @@ subirPop(Anime) :- preguntado(Anime, Veces), Veces > 4, retract(popularidad(Anim
 
 % -------------------------------------------------------------AUTOMATAS--------------------------------------------------------------------------------- %
 % Predicado que va de un nodo 1 a un nodo 2 cualesquiera 
+traverse('#':'#',Tape1,Tape1,Tape2,Tape2).
 traverse(L1:'#',[L1|RestTape1],RestTape1,Tape2,Tape2).
 traverse(L1:L2,[L1|RestTape1],RestTape1,[L2|RestTape2],RestTape2).
 
@@ -145,6 +146,21 @@ arcSaludos(1, 4, hola:'#').
 arcSaludos(4, 2, anibot:Respuesta) :- respuestaSaludos(FraseRespuesta), Respuesta = FraseRespuesta.
 arcSaludos(1, 3, buenos:'#').
 arcSaludos(3, 2, dias:Respuesta) :- respuestaSaludos(FraseRespuesta), Respuesta = FraseRespuesta.
+
+% Automata para reconocer despedidas
+inicialDespedida(1).
+finalDespedida(2).
+arcDespedida(1, 2, Palabra:Respuesta) :- member(Palabra, [adios, bye]), respuestaDespedida(FraseRespuesta), Respuesta = FraseRespuesta.
+arcDespedida(1, 3, adios:'#').
+arcDespedida(3, 2, anibot:Respuesta) :- respuestaDespedida(FraseRespuesta), Respuesta = FraseRespuesta.
+arcDespedida(3, 4, ,:'#').
+arcDespedida(1, 4, gracias:'#').
+arcDespedida(4, 8, por:'#').
+arcDespedida(8, 2, todo:Respuesta) :- respuestaDespedida(FraseRespuesta), Respuesta = FraseRespuesta.
+arcDespedida(2, 4, '#':'#').
+arcDespedida(4, 6, vere:'#').
+arcDespedida(6, 7, tus:'#').
+arcDespedida(7, 2, reconmedaciones:Respuesta) :- respuestaDespedida(FraseRespuesta), Respuesta = FraseRespuesta.
 
 % Reconocedor de saludos.
 reconoceSaludo(Node, [], []) :- 
