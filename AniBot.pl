@@ -1,16 +1,22 @@
-:- dynamic anime/1, genero/1, rating/2, popularidad/2, subirPop/1, preguntado/2.
+:- dynamic anime/1, genero/1, rating/2, popularidad/2, subirPop/1, preguntado/2, estadoDelPrograma/1, estadoDelProgramaGeneros/1.
 
-anime(X) :- member(X,["Dragon Ball", "Naruto", "Bleach", "HunterXHunter", "Hamtaro", "Full Metal Alchemist"]).
+baseOriginal(["Dragon Ball", "Naruto", "Bleach", "HunterXHunter", "Hamtaro", "Full Metal Alchemist"]).
+baseOriginalGeneros([aventura, shoujo, shounen, kodomo, seinen, josei, ficcion,
+    fantasia, mecha, sobrenatural, magia, gore]).
 
-genero(X) :- member(X,["Aventura", "Shoujo", "Shounen", "Kodomo", "Seinen", "Josei", "Ficción",
-                    "Fantasía", "Mecha", "Sobrenatural", "Magia", "Gore"]).
+estadoDelPrograma(Animes) :- baseOriginal(Lista), Animes = Lista.
+estadoDelProgramaGeneros(Generos) :- baseOriginalGeneros(Lista), Generos = Lista.
 
-generoAnime("Naruto",["Shounen","Aventura"]).
-generoAnime("Dragon Ball",["Shounen"]).
-generoAnime("Bleach",["Shounen", "Sobrenatural"]).
-generoAnime("HunterXHunter",["Seinen", "Aventura"]).
-generoAnime("Hamtaro",["Kodomo"]).
-generoAnime("Full Metal Alchemist",["Shounen", "Magia"]).
+anime(X) :- estadoDelPrograma(Animes), member(X, Animes).
+
+genero(X) :- estadoDelProgramaGeneros(Generos), member(X,Generos).
+
+generoAnime("Naruto",[shounen, aventura]).
+generoAnime("Dragon Ball",[shounen]).
+generoAnime("Bleach",[shounen, sobrenatural]).
+generoAnime("HunterXHunter",[seinen, aventura]).
+generoAnime("Hamtaro",[kodomo]).
+generoAnime("Full Metal Alchemist",[shounen, magia]).
 
 rating("Dragon Ball",3).
 rating("Naruto",1).
@@ -92,7 +98,12 @@ animesPorGenero(Genero, Opcion, Ordenamiento, Animes) :-
     findall(Anime, esGenero(Genero, Anime), Lista), Opcion = "rp", Ordenamiento = "ma" -> ordenadoPorPopPlusRa(Lista, Lista1), Animes = Lista1;
     findall(Anime, esGenero(Genero, Anime), Lista), Opcion = "rp", Ordenamiento = "me" -> ordenadoPorPopPlusRa(Lista, Lista1), reverse(Lista1, Lista2), Animes = Lista2.
 
-
+animesPorGeneros([], []).
+animesPorGeneros([G|Gs], Animes) :-
+    animesPorGenero(G, "r", "ma", Lista1),
+    animesPorGeneros(Gs, Lista2),
+    union(Lista1, Lista2, ListaResultado),
+    Animes = ListaResultado.
 
 % Poder mostar los animés con X número de estrellas dentro de cierto género (el género es
 % un estado del chatbot que se debe conocer).
@@ -141,6 +152,7 @@ subirPop(Anime) :- preguntado(Anime, Veces), Veces > 4, retract(popularidad(Anim
 % -------------------------------------------------------------AUTOMATAS--------------------------------------------------------------------------------- %
 % Predicado que va de un nodo 1 a un nodo 2 cualesquiera 
 traverse('#':'#',Tape1,Tape1,Tape2,Tape2).
+traverse('#':L2,Tape1,Tape1,[L2|RestTape2],RestTape2).
 traverse(L1:'#',[L1|RestTape1],RestTape1,Tape2,Tape2).
 traverse(L1:L2,[L1|RestTape1],RestTape1,[L2|RestTape2],RestTape2).
 
@@ -190,6 +202,31 @@ arcMejores(5, 6, los:'#').
 arcMejores(6, 7, mejores:'#').
 arcMejores(7, 2, ratings:Respuesta) :- respuestaMejores(FraseRespuesta), Respuesta = FraseRespuesta.
 
+% Automata para reconocer gustos 
+inicialGustos(1).
+finalGustos(2).
+arcGustos(1, 3, me:'#').
+arcGustos(3, 4, gusta:'#').
+arcGustos(4, 5, '#':'#').
+arcGustos(5, 6, Genero:'#') :- genero(Genero).
+arcGustos(6, 5, ',':'#').
+arcGustos(6, 7, '#':'#').
+arcGustos(7, 2,'#':Respuesta) :- respuestaGustos(FraseRespuesta1), !, Respuesta = FraseRespuesta1.
+arcGustos(7, 8, me:'#').
+arcGustos(8, 9, recomiendas:'#').
+arcGustos(9, 2, '#':Respuesta) :- respuestaGustos(FraseRespuesta1), Respuesta = FraseRespuesta1.
+arcGustos(1, 10, Palabra:'#') :- member(Palabra, [recomiendame, cuales]).
+arcGustos(10, 11, animes:'#').
+arcGustos(11, 4, de:'#').
+
+% Predicado para actualizar base de datos 
+actualizarBase :- 
+    findall(Genero, retract(subconGeneros(Genero)), ListaGenero),
+    retract((estadoDelProgramaGeneros(Generos) :- baseOriginalGeneros(Lista), Generos = Lista)) -> assertz(estadoDelProgramaGeneros(ListaGenero));
+    findall(Genero, retract(subconGeneros(Genero)), ListaGenero),
+    retract(estadoDelProgramaGeneros(_)) -> assertz(estadoDelProgramaGeneros(ListaGenero)).
+
+
 % Reconocedor de saludos.
 reconoceSaludo(Node, [], []) :- 
     finalSaludos(Node).
@@ -226,12 +263,34 @@ reconoceMejores(Node1, String1, Responder) :-
     traverse(Label, String1, NewString1, Responder, NewResponder),
     reconoceMejores(Node2, NewString1, NewResponder).
 
+% Reconocedor de gustos 
+head([], []).
+head([S|_], Cabeza) :- Cabeza = S.
+
+reconoceGustos(Node, [], []) :-
+    finalGustos(Node).
+
+reconoceGustos(Node1, String1, Responder) :-
+    arcGustos(Node1, Node2, Label),
+    traverse(Label, String1, NewString1, Responder, NewResponder),
+    head(String1, Cabeza), genero(Cabeza), \+(retract(subconGeneros(Cabeza))) ->  assertz(subconGeneros(Cabeza)), reconoceGustos(Node2, NewString1, NewResponder), !;
+    arcGustos(Node1, Node2, Label),
+    traverse(Label, String1, NewString1, Responder, NewResponder),
+    reconoceGustos(Node2, NewString1, NewResponder), !.
+
 %--------------------------------------------------------- Manejador de Respuestas 2. Para Automatas.------------------------------------------------------%
+
+% Predicado para restaurar a su estado original la base de datos 
+llevarBaseOriginal :- 
+    retract(estadoDelProgramaGeneros(_)),
+    assertz((estadoDelProgramaGeneros(Generos) :- baseOriginalGeneros(Lista), Generos = Lista)).
+
 producirRespuestaAutomata(Frase, FraseRespuesta) :-
     reconoceSaludo(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !;
     reconoceDespedida(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !;
     reconoceInteres(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !;
     reconoceMejores(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !;
+    reconoceGustos(1, Frase, Respuesta) -> llevarBaseOriginal, FraseRespuesta = Respuesta,!;
     respuestaError(Respuesta), FraseRespuesta = Respuesta, !.
 
 
@@ -247,9 +306,11 @@ respuestaDespedida(FraseRespuesta) :-
     random_member(Respuesta, ["Adios, estamos en contacto!", "Chao, no dudes en usarme de nuevo", "Disfruta viendo nuestras recomendaciones", "Si necesitas otro anime escribeme"]),
     FraseRespuesta = Respuesta.
 
-respuestaInteres(FraseRespuesta) :- animesDeInteres(Respuesta), FraseRespuesta = Respuesta.
+respuestaInteres(FraseRespuesta) :- animesDeInteres(Respuesta), write("Estos son algunos de los animes buenos poco conocidos "), FraseRespuesta = Respuesta.
 
-respuestaMejores(FraseRespuesta) :- animesConNumEstrellas(5, Respuesta), FraseRespuesta = Respuesta.
+respuestaMejores(FraseRespuesta) :- animesConNumEstrellas(5, Respuesta), write("Estos son los animes con los mejores ratings: "), FraseRespuesta = Respuesta.
+
+respuestaGustos(FraseRespuesta) :- actualizarBase, estadoDelProgramaGeneros(Generos), animesPorGeneros(Generos, ListaAnimes), FraseRespuesta = ListaAnimes, write(Generos).
 
 % Este predicado actuara como un sumidero para aquellas frases que no pueda reconocer ninguno de 
 % los automatas
@@ -267,6 +328,6 @@ main_loop :- write("Bienvenido al AniBot: -> "),
                 readln(N),
                 nl, emitirRespuestaAutomata(N, Respuesta),
                 transform_to_string(Respuesta, Salida),
-                write(Salida),
+                writeln(Salida),
             se_salio(Salida),
             !.
