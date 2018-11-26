@@ -278,6 +278,27 @@ reconoceGustos(Node1, String1, Responder) :-
     traverse(Label, String1, NewString1, Responder, NewResponder),
     reconoceGustos(Node2, NewString1, NewResponder), !.
 
+% Reconocedor de animes sin automatas 
+
+listaFrases([['"', 'Dragon', 'Ball', '"', es, muy, bueno, ',', lo, conoces], ['"', 'Naruto', '"', es, muy, bueno, ',', lo, conoces],
+             ['"', 'Bleach', '"', es, muy, bueno, ',', lo, conoces], ['"', 'HunterXHunter', '"', es, muy, bueno,',', lo, conoces, '"'],
+            ['"', 'Hamtaro', '"', es, muy, bueno, ',', lo, conoces], ['"', 'Full', 'Metal', 'Alchemist', '"', es, muy, bueno, ',', lo, conoces]]).
+
+responderAnime(Anime, Estrellas, Generos, Pop) :-
+    Pop > 0, Pop < 3 -> write("Si, "), write(Anime), write(" tiene rating "), write(Estrellas), write(" y genero es "), write(Generos), writeln(" pero es muy poco conocido");
+    Pop > 2, Pop < 6 -> write("Si, "), write(Anime), write(" tiene rating "), write(Estrellas), write(" y genero es "), write(Generos), writeln(" pero es poco conocido");
+    Pop > 5, Pop < 8 -> write("Si, "), write(Anime), write(" tiene rating "), write(Estrellas), write(" y genero es "), write(Generos), writeln(" es conocido");
+    Pop > 7, Pop < 10 -> write("Si, "), write(Anime), write(" tiene rating "), write(Estrellas), write(" y genero es "), write(Generos), writeln(" es muy conocido");
+    write("Si, "), write(Anime), write(" tiene rating "), write(Estrellas), write(" y genero es "), write(Generos), writeln(" es bastante conocido").
+
+respuestaConoceAnime(Frase) :- 
+    Frase == ['"', 'Dragon', 'Ball', '"', es, muy, bueno, ',', lo, conoces] -> popularidad("Dragon Ball", Pop), rating("Dragon Ball", Estrellas), generoAnime("Dragon Ball", Generos), responderAnime("Dragon Ball", Estrellas, Generos, Pop), !; 
+    Frase == ['"', 'Naruto', '"', es, muy, bueno, ',', lo, conoces] -> popularidad("Naruto", Pop), rating("Naruto", Estrellas), generoAnime("Naruto", Generos), responderAnime("Naruto", Estrellas, Generos, Pop), !; 
+    Frase == ['"', 'Bleach', '"', es, muy, bueno, ',', lo, conoces] -> popularidad("Bleach", Pop), rating("Bleach", Estrellas), generoAnime("Bleach", Generos), responderAnime("Bleach", Estrellas, Generos, Pop), !; 
+    Frase == ['"', 'HunterXHunter', '"', es, muy, bueno, ',', lo, conoces] -> popularidad("HunterXHunter", Pop), rating("HunterXHunter", Estrellas), generoAnime("HunterXHunter", Generos), responderAnime("HunterXHunter", Estrellas, Generos, Pop), !; 
+    Frase == ['"', 'Hamtaro', '"', es, muy, bueno, ',', lo, conoces] -> popularidad("Hamtaro", Pop), rating("Hamtaro", Estrellas), generoAnime("Hamtaro", Generos), responderAnime("Hamtaro", Estrellas, Generos, Pop), !; 
+    Frase == ['"', 'Full', 'Metal', 'Alchemist', '"', es, muy, bueno, ',', lo, conoces] -> popularidad("Full Metal Alchemist", Pop), rating("Full Metal Alchemist", Estrellas), generoAnime("Full Metal Alchemist", Generos), responderAnime("Full Metal Alchemist", Estrellas, Generos, Pop), !. 
+
 %--------------------------------------------------------- Manejador de Respuestas 2. Para Automatas.------------------------------------------------------%
 
 % Predicado para restaurar a su estado original la base de datos 
@@ -291,6 +312,7 @@ producirRespuestaAutomata(Frase, FraseRespuesta) :-
     reconoceInteres(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !;
     reconoceMejores(1, Frase, Respuesta) -> FraseRespuesta = Respuesta, !;
     reconoceGustos(1, Frase, Respuesta) -> llevarBaseOriginal, FraseRespuesta = Respuesta,!;
+    respuestaConoceAnime(Frase), FraseRespuesta = "", !;
     respuestaError(Respuesta), FraseRespuesta = Respuesta, !.
 
 
